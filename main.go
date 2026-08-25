@@ -37,7 +37,7 @@ func main() {
 	// --------------------------------------------------------------
 	// GET WORD TO GUESS
 	// --------------------------------------------------------------
-	wordToGuess := ""
+	wordToGuess := []rune{}
 
 	wordNumber, wErr := strconv.Atoi(args[0])
 	if wErr != nil {
@@ -63,7 +63,7 @@ func main() {
 		if wordsScanner.Scan() {
 			lineNum++
 			if lineNum == wordNumber { 
-				wordToGuess = wordsScanner.Text()
+				wordToGuess = []rune(wordsScanner.Text())
 				break
 			}
 		} else {
@@ -73,6 +73,11 @@ func main() {
 		}
 	}
 	wordsFile.Close()
+
+	if len(wordToGuess) == 0 {
+		fmt.Println("There has been an error finding the word. We apologize.")
+		return
+	}
 
 	// --------------------------------------------------------------
 	// 
@@ -107,6 +112,34 @@ func main() {
 			}
 		}
 		if con { continue }
+
+		// Guessed word processing
+		fmt.Print("Feedback: ")
+		for i, ch := range guess {
+			uppCh := ch - 'a' + 'A'
+			if ch == wordToGuess[i] {
+				fmt.Print(Green + string(uppCh) + Reset + " ")
+				continue
+			} else if strings.ContainsRune(string(wordToGuess), ch) {
+				fmt.Print(Yellow + string(uppCh) + Reset + " ")
+				continue
+			} else {
+				fmt.Print(White + string(uppCh) + Reset + " ")
+				// remove it from the remaining letters
+				for j, l := range remainingLetters {
+					if uppCh == l {
+						if len(remainingLetters) == 1 {
+							remainingLetters = []rune{}
+						} else if j == 0 {
+							remainingLetters = remainingLetters[1:]
+						} else {
+							remainingLetters = append(remainingLetters[:j], remainingLetters[j+1:]...)
+						}
+						break
+					}
+				}
+			}
+		}
 	}
 
 }
@@ -127,4 +160,3 @@ func main() {
 What is the deal with the database?
 It stores: username, word to guess, attempts used, win/lose
 */
-
