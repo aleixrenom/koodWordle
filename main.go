@@ -92,15 +92,15 @@ func main() {
 		}
 
 		// Input validation
-		con := false
+		hasInvalidChar := false
 		for _, ch := range guess {
-			if unicode.IsDigit(ch) || unicode.IsUpper(ch) {
-				con = true
+			if !unicode.IsLower(ch) {
+				hasInvalidChar = true
 				break
 				// os.Exit(0)
 			}
 		}
-		if con {
+		if hasInvalidChar {
 			fmt.Println("Your guess must only contain lowercase letters.")
 			continue
 		}
