@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"encoding/csv"
+	"io"
 )
 
 const (
@@ -203,7 +205,7 @@ func main() {
 
 	}
 
-	// Save stats
+	// Open stats
 	statsFile, cErr := os.OpenFile("stats.csv", os.O_RDWR | os.O_APPEND | os.O_CREATE, 0644)
 	if cErr != nil {
 		fmt.Println("Error opening the stats file:", cErr)
@@ -211,18 +213,56 @@ func main() {
 	}
 	defer statsFile.Close() // the program will end very soon, so we can trust that the defer will trigger soon too
 
-	_, nErr := statsFile.WriteString(
-		"\n" +
-			currentStats.username + "," +
-			currentStats.secretWord + "," +
-			fmt.Sprint(currentStats.secretWord) + "," +
-			fmt.Sprint(currentStats.victory),
-	)	
-	if nErr != nil {
-		fmt.Println("Error updating the stats file:", nErr)
+	// Save stats
+	statsWriter := csv.NewWriter(statsFile)
+
+	if ssErr := statsWriter.Write([]string{
+		currentStats.username,
+		currentStats.secretWord,
+		fmt.Sprint(currentStats.attempts),
+		fmt.Sprint(currentStats.victory),
+	}); ssErr != nil {
+		fmt.Println("Error updating the stats file:", ssErr)
 		return
 	}
 
-	// Show stats
-	
+	statsWriter.Flush() // Write to disk
+
+	if wantStats == "yes" {
+		// Show stats
+		statsFile.Seek(0,0) // After saving the stats into the file, the cursor is at the end, so we have to bring it back up to read
+		statsReader := csv.NewReader(statsFile)
+		userStats := [][]string{}
+
+		for {
+			record, srErr := statsReader.Read()
+			if srErr == io.EOF {
+				break
+			}
+			if srErr != nil {
+				fmt.Println("Error reading the stats file:", srErr)
+				break
+			}
+
+			if currentStats.username == record[0] {
+				userStats = append(userStats, record)
+			}
+		}
+
+		gamesWon := 0
+		attemptsSum := 0
+
+		for _, match := range userStats {
+			if match[3] == "true" { gamesWon++ }
+			attemptsAmt, _ := strconv.Atoi(match[2])
+			attemptsSum += attemptsAmt
+		}
+
+		attemptsAvg := float64(attemptsSum) / float64(len(userStats)) // 64 because strconv.FormatFloat() asks for 64 (I think)
+
+		fmt.Println("Stats for " + userStats[0][0] + ":")
+		fmt.Println("Games played:", len(userStats))
+		fmt.Println("Games won:", gamesWon)
+		fmt.Println("Average attempts per game:", strconv.FormatFloat(attemptsAvg, 'f', 1, 64))
+	}
 }
