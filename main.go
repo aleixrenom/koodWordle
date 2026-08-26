@@ -136,6 +136,7 @@ func main() {
 		
 		// If there is no more attempts it means that the game is lost
 		if attemptsRemaining == 0 { 
+			fmt.Println("Game over. The correct word was: " + string(wordToGuess))
 			currentStats.victory = false
 			break
 		}
