@@ -11,6 +11,10 @@ import (
 	// "io"
 )
 
+// --------------------------------------------------------------
+// PACKAGE VARIABLES
+// --------------------------------------------------------------
+	
 const (
 	Reset = "\033[0m"
 	Green = "\033[32m"
@@ -38,13 +42,13 @@ func main() {
 	args := os.Args[1:] // grab all user-given arguments (first one is always just path)
 
 	if len(args) != 1 {
-		fmt.Println("Usage: go run . [number]")
+		fmt.Println("Please provide a number as command line argument")
 		os.Exit(0)
 	}
 
 	wordNumber, wErr := strconv.Atoi(args[0])
 	if wErr != nil {
-		fmt.Println("Usage: go run . [number]\n", wErr)
+		fmt.Println("Invalid command-line argument. Please launch with a valid number.")
 		os.Exit(0)
 	}
 
@@ -139,4 +143,8 @@ func main() {
 	saveStats()
 	if wantStats() { showStats() }
 
+	fmt.Println("Press Enter to exit...")
+	if scanner.Scan() {
+		uselessInput := scanner.Text()
+	}
 }
