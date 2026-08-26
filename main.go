@@ -79,24 +79,36 @@ func main() {
 		return
 	}
 
+	fmt.Printf("(Don't tell anyone, but the word is \"%s\")\n", string(wordToGuess))
+
 	// --------------------------------------------------------------
 	// 
 	// --------------------------------------------------------------
 
 	currentStats := GameData{}
+	attemptsRemaining := 6
+	gameFinished := false
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Print("Enter your username: ")
-	if scanner.Scan() {
-		currentStats.username = strings.TrimSpace(scanner.Text())
+	for currentStats.username == "" {
+		fmt.Print("Enter your username: ")
+		if scanner.Scan() {
+			currentStats.username = strings.TrimSpace(scanner.Text())
+		}
 	}
 
 	fmt.Println("Welcome to Wordle! Guess the 5-letter word.")
 	
-	for scanner.Scan() {
+	for {
+		guess := ""
 		fmt.Print("Enter your guess: ")
-		guess := strings.TrimSpace(scanner.Text())
+		if scanner.Scan() {
+			guess = strings.TrimSpace(scanner.Text())
+		} else {
+			fmt.Printf("There was a problem gathering input.")
+			break
+		}
 
 		// Input validation
 		if len(guess) != 5 {
@@ -113,18 +125,26 @@ func main() {
 		}
 		if con { continue }
 
+		// Correct guess
+		if guess == string(wordToGuess) {
+			fmt.Println("Congratulations! You've guessed the word correctly.")
+			currentStats.victory = true
+			gameFinished = true
+			break
+		}
+
 		// Guessed word processing
 		fmt.Print("Feedback: ")
 		for i, ch := range guess {
 			uppCh := ch - 'a' + 'A'
 			if ch == wordToGuess[i] {
-				fmt.Print(Green + string(uppCh) + Reset + " ")
+				fmt.Print(Green + string(uppCh) + Reset)
 				continue
 			} else if strings.ContainsRune(string(wordToGuess), ch) {
-				fmt.Print(Yellow + string(uppCh) + Reset + " ")
+				fmt.Print(Yellow + string(uppCh) + Reset)
 				continue
 			} else {
-				fmt.Print(White + string(uppCh) + Reset + " ")
+				fmt.Print(White + string(uppCh) + Reset)
 				// remove it from the remaining letters
 				for j, l := range remainingLetters {
 					if uppCh == l {
@@ -140,7 +160,28 @@ func main() {
 				}
 			}
 		}
+
+		// Remaining letters
+		fmt.Print("\nRemaining letters: ")
+		for _, l := range remainingLetters {
+			fmt.Print(string(l) + " ")
+		}
+
+		// Remaining attempts
+		attemptsRemaining--
+		fmt.Println("\nAttempts remaining: " + fmt.Sprint(attemptsRemaining))
+		
+		if attemptsRemaining == 0 { 
+			currentStats.victory = false
+			gameFinished = true
+			break 
+		}
 	}
+
+	// Storing post-game data
+	currentStats.secretWord = string(wordToGuess)
+	currentStats.attempts = 6 - attemptsRemaining
+
 
 }
 
