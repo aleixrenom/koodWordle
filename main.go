@@ -101,7 +101,7 @@ func main() {
 			}
 		}
 		if con {
-			fmt.Print("  Your guess must only contain lowercase letters.")
+			fmt.Println("  Your guess must only contain lowercase letters.")
 			continue
 		}
 		if len(guess) != 5 {
