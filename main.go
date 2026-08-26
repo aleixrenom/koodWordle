@@ -75,6 +75,8 @@ func main() {
 		fmt.Print("Enter your username: ")
 		if scanner.Scan() {
 			currentStats.username = strings.TrimSpace(scanner.Text())
+		} else {
+			os.Exit(0)
 		}
 	}
 
