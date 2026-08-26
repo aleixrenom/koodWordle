@@ -97,7 +97,7 @@ func main() {
 			if unicode.IsDigit(ch) || unicode.IsUpper(ch) {
 				fmt.Print("Your guess must only contain lowercase letters.")
 				con = true
-				os.Exit(0)
+				// os.Exit(0)
 			}
 		}
 		if !wordExists(guess) {
