@@ -83,7 +83,7 @@ func main() {
 	// Main game loop
 	for {
 		guess := ""
-		fmt.Print("Enter your guess:  ")
+		fmt.Print("Enter your guess:")
 		if scanner.Scan() {
 			guess = strings.TrimSpace(scanner.Text())
 		} else {
@@ -95,17 +95,17 @@ func main() {
 		con := false
 		for _, ch := range guess {
 			if unicode.IsDigit(ch) || unicode.IsUpper(ch) {
-				fmt.Print("Your guess must only contain lowercase letters.")
+				fmt.Print("  Your guess must only contain lowercase letters.")
 				con = true
-				// os.Exit(0)
+				os.Exit(0)
 			}
 		}
-		if !wordExists(guess) {
-			fmt.Println("Please enter a valid word.")
+		if len(guess) != 5 {
+			fmt.Println("  Your guess must be exactly 5 letters long.")
 			continue
 		}
-		if len(guess) != 5 {
-			fmt.Println("Your guess must be exactly 5 letters long.")
+		if !wordExists(guess) {
+			fmt.Println("  Word not in list. Please enter a valid word.")
 			continue
 		}
 		if con { continue }
