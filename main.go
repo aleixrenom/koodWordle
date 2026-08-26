@@ -113,6 +113,10 @@ func main() {
 		}
 
 		// Input validation
+		if !wordExists(guess) {
+			fmt.Println("Please enter a valid word.")
+			continue
+		}
 		if len(guess) != 5 {
 			fmt.Println("Your guess must be exactly 5 letters long.")
 			continue
@@ -265,4 +269,28 @@ func main() {
 		fmt.Println("Games won:", gamesWon)
 		fmt.Println("Average attempts per game:", strconv.FormatFloat(attemptsAvg, 'f', 1, 64))
 	}
+}
+
+func wordExists(word string) bool {
+	found := false
+	wordsFile, oErr := os.OpenFile("wordle-words.txt", os.O_RDONLY, 0644)
+	if oErr != nil {
+		fmt.Println("Error opening the words file:", oErr)
+		return found
+	}
+
+	wordsScanner := bufio.NewScanner(wordsFile)
+
+	for {
+		if wordsScanner.Scan() {
+			if word == wordsScanner.Text() { 
+				found = true
+				break
+			}
+		} else { // EOF
+			break
+		}
+	}
+	wordsFile.Close()
+	return found
 }
