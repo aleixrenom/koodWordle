@@ -52,7 +52,9 @@ func getWordToGuess(wordNumber int) []rune {
 				break
 			}
 		} else {
-			fmt.Println("Not enough words available. Please, give a smaller number as the first argument.")
+			// fmt.Println("Not enough words available. Please, give a smaller number as the first argument.")
+			fmt.Println("Enter your username: Invalid word number.")
+			fmt.Println("Press Enter to exit...")
 			wordsFile.Close()
 			os.Exit(0)
 		}
