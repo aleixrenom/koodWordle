@@ -132,7 +132,7 @@ func main() {
 
 		// Print remaining attempts
 		attemptsRemaining--
-		fmt.Println("\nAttempts remaining: " + fmt.Sprint(attemptsRemaining))
+		fmt.Println("\nAttempts remaining:  " + fmt.Sprint(attemptsRemaining))
 		
 		// If there is no more attempts it means that the game is lost
 		if attemptsRemaining == 0 { 
