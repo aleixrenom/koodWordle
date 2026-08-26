@@ -26,6 +26,7 @@ type GameData struct {
 }
 
 var remainingLetters []rune = []rune{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'}
+var wordToGuess []rune
 
 func main() {
 	args := os.Args[1:] // grab all user-given arguments (first one is always just path)
@@ -33,53 +34,21 @@ func main() {
 
 	if len(args) != 1 {
 		fmt.Println("Usage: go run . [number]")
-		return
+		os.Exit(0)
 	}
-
-	// --------------------------------------------------------------
-	// GET WORD TO GUESS
-	// --------------------------------------------------------------
-	wordToGuess := []rune{}
 
 	wordNumber, wErr := strconv.Atoi(args[0])
 	if wErr != nil {
 		fmt.Println("Usage: go run . [number]\n", wErr)
-		return
+		os.Exit(0)
 	}
 
 	if wordNumber <= 0 {
 		fmt.Println("Please, give a positive number as the first argument.")
-		return
+		os.Exit(0)
 	}
 
-	wordsFile, fErr := os.OpenFile("wordle-words.txt", os.O_RDONLY, 0644)
-	if fErr != nil {
-		fmt.Println("Error opening the words file:", fErr)
-		return
-	}
-
-	wordsScanner := bufio.NewScanner(wordsFile)
-
-	lineNum := 0
-	for {
-		if wordsScanner.Scan() {
-			lineNum++
-			if lineNum == wordNumber { 
-				wordToGuess = []rune(wordsScanner.Text())
-				break
-			}
-		} else {
-			fmt.Println("Not enough words available. Please, give a smaller number as the first argument.")
-			wordsFile.Close()
-			return
-		}
-	}
-	wordsFile.Close()
-
-	if len(wordToGuess) == 0 {
-		fmt.Println("There has been an error finding the word. We apologize.")
-		return
-	}
+	wordToGuess = getWordToGuess(wordNumber)
 
 	fmt.Printf("(Don't tell anyone, but the word is \"%s\")\n", string(wordToGuess))
 
@@ -191,7 +160,7 @@ func main() {
 
 	// In some cases where validation has not passed, the execution will arrive here
 	// with gameFinished still being false
-	if !gameFinished { return }
+	if !gameFinished { os.Exit(0) }
 
 	// Ask for stats
 	wantStats := ""
@@ -213,7 +182,7 @@ func main() {
 	statsFile, cErr := os.OpenFile("stats.csv", os.O_RDWR | os.O_APPEND | os.O_CREATE, 0644)
 	if cErr != nil {
 		fmt.Println("Error opening the stats file:", cErr)
-		return
+		os.Exit(0)
 	}
 	defer statsFile.Close() // the program will end very soon, so we can trust that the defer will trigger soon too
 
@@ -227,7 +196,7 @@ func main() {
 		fmt.Sprint(currentStats.victory),
 	}); ssErr != nil {
 		fmt.Println("Error updating the stats file:", ssErr)
-		return
+		os.Exit(0)
 	}
 
 	statsWriter.Flush() // Write to disk
@@ -293,4 +262,38 @@ func wordExists(word string) bool {
 	}
 	wordsFile.Close()
 	return found
+}
+
+func getWordToGuess(wordNumber int) []rune {
+	word := []rune{}
+	wordsFile, fErr := os.OpenFile("wordle-words.txt", os.O_RDONLY, 0644)
+	if fErr != nil {
+		fmt.Println("Error opening the words file:", fErr)
+		os.Exit(0)
+	}
+
+	wordsScanner := bufio.NewScanner(wordsFile)
+
+	lineNum := 0
+	for {
+		if wordsScanner.Scan() {
+			lineNum++
+			if lineNum == wordNumber { 
+				word = []rune(wordsScanner.Text())
+				break
+			}
+		} else {
+			fmt.Println("Not enough words available. Please, give a smaller number as the first argument.")
+			wordsFile.Close()
+			os.Exit(0)
+		}
+	}
+	wordsFile.Close()
+
+	if len(word) == 0 {
+		fmt.Println("There has been an error finding the word. We apologize.")
+		os.Exit(0)
+	}
+
+	return word
 }
