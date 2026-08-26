@@ -43,7 +43,7 @@ func wantStats(scanner *bufio.Scanner) bool {
 		if scanner.Scan() {
 			wantStats = strings.TrimSpace(scanner.Text())
 		} else {
-			fmt.Println("\nThere was an error processing your input.")
+			// fmt.Println("\nThere was an error processing your input.")
 			os.Exit(0)
 		}
 		if wantStats != "yes" && wantStats != "no" {
