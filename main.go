@@ -95,10 +95,14 @@ func main() {
 		con := false
 		for _, ch := range guess {
 			if unicode.IsDigit(ch) || unicode.IsUpper(ch) {
-				fmt.Print("  Your guess must only contain lowercase letters.")
 				con = true
+				break
 				// os.Exit(0)
 			}
+		}
+		if con {
+			fmt.Print("  Your guess must only contain lowercase letters.")
+			continue
 		}
 		if len(guess) != 5 {
 			fmt.Println("  Your guess must be exactly 5 letters long.")
@@ -108,7 +112,7 @@ func main() {
 			fmt.Println("  Word not in list. Please enter a valid word.")
 			continue
 		}
-		if con { continue }
+		
 
 		// Correct guess
 		if guess == string(wordToGuess) {
