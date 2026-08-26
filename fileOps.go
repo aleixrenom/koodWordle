@@ -47,7 +47,7 @@ func getWordToGuess(wordNumber int) []rune {
 	for {
 		if wordsScanner.Scan() {
 			lineNum++
-			if lineNum == wordNumber { 
+			if lineNum - 1 == wordNumber { 
 				word = []rune(wordsScanner.Text())
 				break
 			}
