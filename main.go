@@ -86,11 +86,10 @@ func main() {
 		fmt.Print("Enter your guess: ")
 		if scanner.Scan() {
 			guess = strings.TrimSpace(scanner.Text())
-		} 
-		// else {
-		// 	fmt.Printf("There was a problem gathering input.")
-		// 	os.Exit(0)
-		// }
+		} else {
+			// fmt.Printf("There was a problem gathering input.")
+			os.Exit(0)
+		}
 
 		// Input validation
 		if !wordExists(guess) {
