@@ -176,28 +176,53 @@ func main() {
 			gameFinished = true
 			break 
 		}
+
 	}
 
 	// Storing post-game data
 	currentStats.secretWord = string(wordToGuess)
 	currentStats.attempts = 6 - attemptsRemaining
 
+	// In some cases where validation has not passed, the execution will arrive here
+	// with gameFinished still being false
+	if !gameFinished { return }
 
+	// Ask for stats
+	wantStats := ""
+	fmt.Print("Do you want to see your stats? (yes/no): ")
+	for wantStats != "yes" && wantStats != "no" {
+		if scanner.Scan() {
+			wantStats = strings.TrimSpace(scanner.Text())
+		} else {
+			fmt.Println("\nThere was an error processing your input.")
+			break
+		}
+		if wantStats != "yes" && wantStats != "no" {
+			fmt.Print("Please, wright only 'yes' or 'no': ")
+		}
+
+	}
+
+	// Save stats
+	statsFile, cErr := os.OpenFile("stats.csv", os.O_RDWR | os.O_APPEND | os.O_CREATE, 0644)
+	if cErr != nil {
+		fmt.Println("Error opening the stats file:", cErr)
+		return
+	}
+	defer statsFile.Close() // the program will end very soon, so we can trust that the defer will trigger soon too
+
+	_, nErr := statsFile.WriteString(
+		"\n" +
+			currentStats.username + "," +
+			currentStats.secretWord + "," +
+			fmt.Sprint(currentStats.secretWord) + "," +
+			fmt.Sprint(currentStats.victory),
+	)	
+	if nErr != nil {
+		fmt.Println("Error updating the stats file:", nErr)
+		return
+	}
+
+	// Show stats
+	
 }
-
-// User enters the username they want to use
-	// This username is stored during execution
-
-// User can start guessing with 6 attempts
-	// Validate the input
-
-// After validation, display the feedback and show the remaining letters
-
-// After the guesses run out or they guess the word, ask them if they want to see stats
-
-// Regardless if they displayed stats or not, do the "press enter to exit"
-
-/*
-What is the deal with the database?
-It stores: username, word to guess, attempts used, win/lose
-*/
