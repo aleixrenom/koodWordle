@@ -36,8 +36,7 @@ func printFeedback(guess string) {
 	}
 }
 
-func wantStats() bool {
-	scanner := bufio.NewScanner(os.Stdin)
+func wantStats(scanner *bufio.Scanner) bool {
 	wantStats := ""
 	fmt.Print("Do you want to see your stats? (yes/no): ")
 	for wantStats != "yes" && wantStats != "no" {

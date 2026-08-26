@@ -53,7 +53,9 @@ func main() {
 	}
 
 	if wordNumber <= 0 {
-		fmt.Println("Please, give a positive number as the first argument.")
+		// fmt.Println("Please, give a positive number as the first argument.")
+		fmt.Println("Enter your username: Invalid word number.")
+		fmt.Println("Press Enter to exit...")
 		os.Exit(0)
 	}
 
@@ -84,10 +86,11 @@ func main() {
 		fmt.Print("Enter your guess: ")
 		if scanner.Scan() {
 			guess = strings.TrimSpace(scanner.Text())
-		} else {
-			fmt.Printf("There was a problem gathering input.")
-			os.Exit(0)
-		}
+		} 
+		// else {
+		// 	fmt.Printf("There was a problem gathering input.")
+		// 	os.Exit(0)
+		// }
 
 		// Input validation
 		if !wordExists(guess) {
@@ -141,7 +144,7 @@ func main() {
 	currentStats.attempts = 6 - attemptsRemaining
 
 	saveStats()
-	if wantStats() { showStats() }
+	if wantStats(scanner) { showStats() }
 
 	fmt.Println("Press Enter to exit...")
 	scanner.Scan()
