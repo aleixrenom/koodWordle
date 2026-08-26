@@ -144,7 +144,5 @@ func main() {
 	if wantStats() { showStats() }
 
 	fmt.Println("Press Enter to exit...")
-	if scanner.Scan() {
-		uselessInput := scanner.Text()
-	}
+	scanner.Scan()
 }
