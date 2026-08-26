@@ -83,7 +83,7 @@ func main() {
 	// Main game loop
 	for {
 		guess := ""
-		fmt.Print("Enter your guess:")
+		fmt.Print("Enter your guess:\n")
 		if scanner.Scan() {
 			guess = strings.TrimSpace(scanner.Text())
 		} else {
