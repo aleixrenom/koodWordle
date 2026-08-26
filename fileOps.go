@@ -133,7 +133,7 @@ func showStats() {
 	fmt.Println("Stats for " + userStats[0][0] + ":")
 	fmt.Println("Games played:", len(userStats))
 	fmt.Println("Games won:", gamesWon)
-	fmt.Println("Average attempts per game:", strconv.FormatFloat(attemptsAvg, 'f', 1, 64))
+	fmt.Println("Average attempts per game:", strconv.FormatFloat(attemptsAvg, 'f', 2, 64))
 
 	statsFile.Close()
 }
