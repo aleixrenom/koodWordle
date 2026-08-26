@@ -81,16 +81,15 @@ func main() {
 	fmt.Println("Welcome to Wordle! Guess the 5-letter word.")
 	
 	// Main game loop
-	for scanner.Scan() {
+	for {
 		guess := ""
 		fmt.Print("Enter your guess:")
 		if scanner.Scan() {
 			guess = strings.TrimSpace(scanner.Text())
-		}
-		//  else {
+		} else {
 			// fmt.Printf("There was a problem gathering input.")
-			// os.Exit(0)
-		// }
+			os.Exit(0)
+		}
 
 		// Input validation
 		con := false
