@@ -377,5 +377,3 @@ If you were inspired by this task, you may implement the following additional fe
 - [File operations](https://pkg.go.dev/os)
 - [CSV](https://en.wikipedia.org/wiki/Comma-separated_values)
 - [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
-kood_wordle_instructions.md
-Displaying kood_wordle_instructions.md.
