@@ -1,190 +1,442 @@
-# WeatherStation instructions
 
-Optimize payload sizes for incoming weather station telemetry[cite: 1].
+Gemini
+New chat
+Search chats
+Images
+Library
+New notebook
+Finnish word explanations
+Wordle Project Readme Generation
+Markdown Table Formatting
+Understanding Matrix Transposition in Go
+Gadgeteer Subclass Recommendations
+The Meaning Behind Dear Maria
+Fixing Ctrl+D EOF Bug in Go
+Go Code Newline Analysis
+Passing Go bufio.Scanner to Functions
+Error Handling in Go CLIs
+Parsing CSV Files in Golang
+Formatting Long Go Statements
+Fixing Buffered Output in Go
+Golang Capital Latin Alphabet Slice
+Shorter Terms for ASCII Letters
+Checking Strings for Numbers in Go
+Creating Custom Errors in Go
+Reading Specific Lines in Go
+Understanding Rows in CSV Files
+Package-Level Constants in Go
+Code Review of Storage Get Command
+Converting Strings to Floats in Go
+Splitting Strings into Multiple Variables in Go
+Weather Station Go Task Analysis
+Editing Files Line by Line in Go
+Avoiding Default Arguments in Go
+Optional Parameters and Defaults in Go
+Understanding Factorial Numbers
+Idiomatic Go Constant Declarations
+ANSI Escape Codes in Go
+Understanding the Go Build Command
+Go CLI Cursor Positioning with ANSI
+Understanding Named Return Values in Go
+Documenting Go Code with Godoc
+Clearing the Console in Go
+100 Animal Names List
+Synonyms for Habitual Tendencies and Propensity
+Updating a Branch with Main
+Go Parameter Type: *os.File
+Reading Files in Go Using OS
+Closing a Bufio Scanner in Go
+Continuous Lorem Ipsum Generation
+Fixing Go Multi-File Build Errors
+Eberron Lore Consultant
+Eberron Character Name Ideas
+
+Activity
+Helsinki, Finland
+Based on your places (home)
+Update location
+Conversation with Gemini
+There is the description for a go project called kood / Wordle in this document. Please read it and return it to me word by word as a markdown block so I can use it as a readme for the repository.
+
+Markdown
+# kood / Wordle
 
 ## The Situation
 
-You're working on a custom server which accepts incoming data from weather stations[cite: 1]. You're building the part of the system which transforms incoming messages from weather stations into a format which can be used by other parts of the system[cite: 1].
-
-Those weather stations send their meteorological data every minute, but they only send the data that has changed in the last 60 seconds to keep message payloads as small as possible[cite: 1]. Luckily, those weather stations send a full snapshot every 10 minutes, so there shouldn't be too many gaps in the data if the odd message goes missing[cite: 1].
-
-Your infrastructure is considered as critical national infrastructure, and your senior architect has instructed you not to use any fancy tools for remembering the previous state of the weather station[cite: 1].
-
-You decide to tackle this problem head on with nothing but raw code[cite: 1].
+In this project you are tasked with creating a command-line game in Go that mimics the popular [Wordle](https://www.nytimes.com/games/wordle/index.html). The user will guess a hidden word, and your program will provide feedback on their guesses.
 
 ## Functional Requirements
 
-Your objective is to implement a component that can remember each weather station's previous state, so that you can broadcast its full known state when a partial update message arrives[cite: 1]. You decide to make a test to deal with a single weather station, before scaling your solution to deal with all weather stations[cite: 1].
+### Game Rules
 
-### Overview
+The player has to **guess a 5-letter** word and can make up to **six guesses** to try to identify the secret word. After each guess, the game **provides feedback** indicating which letters are correct:
 
-Your program will:
+- **Green** for letters in the correct position.
+- **Yellow** for correct letters in the wrong position.
+- **White** for incorrect letters.
 
-1. **Read** lines from standard input until `exit` is entered[cite: 1].
-2. **Parse** each line as one of:
-   - **Data update**: `<id>,<value>`[cite: 1]
-   - **Query**: `get`[cite: 1]
-   - **Reset**: `clear`[cite: 1]
-   - **Termination**: `exit`[cite: 1]
-3. **Maintain** an internal state of nine meteorological sensors[cite: 1].
-4. **Print** the full state on `get`[cite: 1].
+If the player fails to guess the word after **six attempts**, the game should reveal the **secret word**.
 
-No menus or prompts should be printed—each line of input triggers exactly one action[cite: 1].
+### User Interaction
 
-### Program Initialisation
+The game must be launched from the command line with a **command-line argument** that signifies the **index** of the word in the provided word list. If the command-line argument is **missing** or **invalid**, the program should handle it **gracefully without crashing**. So the execution command should look like this:
 
-When your program starts, it should print:
+go run . 10
 
-```text
---- Weather Station ---
-```[cite: 1]
 
-### Data Points
+After each guess, the game **provides feedback** and shows the **remaining number of attempts** and a **sorted list of remaining letters** (A-Z) that have not been guessed incorrectly, with letters in the feedback **capitalized**. You have to use **ANSI escape codes** in the format of `"\u001B[32m"` (this example is ANSI green) to color the output.
 
-Weather stations send their data as comma separated value strings, and each data point has a numerical code[cite: 1]. The rest of your system works with keys, and so your service must do some conversions[cite: 1].
+After each game, the player is presented with an option to **view their stats**.
 
-For historical reasons, some IDs are no longer in use, but some old weather stations may still send data which is no longer interesting to your system[cite: 1]. You should ignore any codes which are no longer in use[cite: 1].
+### Data Management
 
-You can use the following table to link data point IDs with their internal strings:
+The word list must be read from a file named `wordle-words.txt` at **project root**. A list with words can be found on the internet, for example [here](https://gist.github.com/dracos/dd0668f281e685bad51479e5acaadb93). **Do not push** the word list file to the repository - it must be included in the `.gitignore` file.
 
-| ID | Key |
-|---|---|
-| 1 | `airTemp` |
-| 2 | `airPressure` |
-| 7 | `precipitation` |
-| 11 | `windSpeed` |
-| 12 | `windDirection` |
-| 13 | `humidity` |
-| 14 | `dewPoint` |
-| 15 | `soilMoisture` |
-| 22 | `cloudCover` |[cite: 1]
+The stats are written to a CSV file named `stats.csv` and include a row of **comma-separated values** for each game in the following order:
 
-The values are formatted as floats[cite: 1].
+- `username`
+- `secret word`
+- `number of attempts`
+- `"win" or "loss"`
 
-The initial state is that all data points are `NULL`[cite: 1].
+The stats file must **persist over games**. **Do not push** the stats file to the repository - it must be included in the `.gitignore` file.
 
-### Messages
-
-Messages are received as CSV strings[cite: 1]. For example if `windSpeed` and `humidity` have changed since the last message, the following string would be received:
-
-```text
-11,15.5
-13,32.3
-```[cite: 1]
-
-There are occasions where there is no data to report for a given sensor, in these cases `NULL` values will be sent[cite: 1]. For example, if there is no wind speed, the wind direction cannot be known[cite: 1].
-
-```text
-11,0
-12,NULL
-```[cite: 1]
-
-The inputs will always be valid[cite: 1]. The CSV string will never be malformed[cite: 1]. The first column will always be a positive integer[cite: 1]. The second column will always be a float or `NULL`[cite: 1].
-
-If no data has changed, no message will be sent[cite: 1]. So we'll never need to deal with an empty string[cite: 1]. A full snapshot will still be sent every 10 minutes, so it is possible to detect if a weather station has *probably* gone offline[cite: 1]. Detecting that is a problem for some other service[cite: 1].
-
-### Return State
-
-The state is always reported in full, ordered by ID[cite: 1]. If no state is known about a data point, `NULL` is displayed[cite: 1].
-
-```text
-airTemp:21.6
-airPressure:31.0
-precipitation:0.4
-windSpeed:0.0
-windDirection:NULL
-humidity:9.1
-dewPoint:12.3
-soilMoisture:33.2
-cloudCover:1008.0
-```[cite: 1]
+If the word list file is missing, the program should handle it **without crashing**.
 
 ### Technical Implementation
 
-Your program must read commands from standard input (stdin) and write responses to standard output (stdout)[cite: 1].
+`main.go` needs to be located at the **root** of your `koodWordle` repository. This is the entry point of the application, handling command-line arguments and starting the game. Your **Go module name** should match your repository name: `koodWordle`.
 
-No menus or prompts should be printed—each line of input triggers exactly one action[cite: 1].
+You must use `bufio.Scanner` to read from standard input (`stdin`). Handle **EOF** (Ctrl+D) **gracefully** by breaking out of input loops when `scanner.Scan()` returns false.
 
-When your program starts, it should print:
+**NB! All the specific requirements and messages are not provided in the description. You have to discover them from the provided video and automated test feedback.**
 
-```text
---- Weather Station ---
-```[cite: 1]
+### Key Output Formats
 
-Process input lines as follows:
+Note that the standard output (`stdout`) of your code needs to match the expected `stdout`. To help you out a bit, here is a list with some of the required output formats. You'll need to figure out any missing formats and where to use them by watching the video and reading the test results.
 
-- **`id,value`** — Updates a sensor value[cite: 1].
-  - Example: `11,15.5` sets `windSpeed` to `15.5`[cite: 1].
-  - Example: `12,NULL` sets `windDirection` to missing[cite: 1].
-  - Invalid lines or IDs outside the table are ignored[cite: 1].
-- **`get`** — Prints all sensor values, one per line, in ascending ID order[cite: 1].
-- **`clear`** — Resets all fields back to missing values (`NULL` when printed)[cite: 1].
-- **`exit`** — Prints `Exiting...` and exits the program[cite: 1].
+- **Start screen**:
 
-`main.go` needs to be located at the **root** of your `weatherStation` repository[cite: 1]. This is the entry point of the application, maintaining the weather station state and processing input commands[cite: 1]. If you use packages, your **Go module name** should match your repository name: `weatherStation`[cite: 1].
+Enter your username:
 
-While the location of `main.go` is a strict requirement, you're free to implement the program's internal logic in any way you choose, as long as it produces the expected standard output (`stdout`)[cite: 1].
 
-## Usage
+- **After login**:
 
-### Getting Initial State
+Welcome to Wordle! Guess the 5-letter word.
+Enter your guess:
 
-```text
-/weatherStation $ go run .
---- Weather Station ---
-get
-airTemp:NULL
-airPressure:NULL
-precipitation:NULL
-windSpeed:NULL
-windDirection:NULL
-humidity:NULL
-dewPoint:NULL
-soilMoisture:NULL
-cloudCover:NULL
-```[cite: 1]
 
-### Updating States
+- **Valid guess screen**:
 
-```text
-11,15.5
-13,32.3
-get
-airTemp:NULL
-airPressure:NULL
-precipitation:NULL
-windSpeed:15.5
-windDirection:NULL
-humidity:32.3
-dewPoint:NULL
-soilMoisture:NULL
-cloudCover:NULL
-```[cite: 1]
+Feedback: 
+Remaining letters: 
+Attempts remaining:  
+Enter your guess:
 
-### Clearing State
 
-```text
-clear
-get
-airTemp:NULL
-airPressure:NULL
-precipitation:NULL
-windSpeed:NULL
-windDirection:NULL
-humidity:NULL
-dewPoint:NULL
-soilMoisture:NULL
-cloudCover:NULL
-```[cite: 1]
+- **After game**:
 
-### Exiting
+Do you want to see your stats? (yes/no):
 
-```text
-exit
-Exiting...
-```[cite: 1]
+
+- **After stats question - if `yes` is entered**:
+
+Stats for :
+Games played: 
+Games won: 
+Average attempts per game: 
+Press Enter to exit...
+
+
+### Possible Package structure
+
+An example package structure for the project. This is not compulsory, but it is good to think through and have a clear structure for your projects.
+
+koodWordle
+├── main.go           // Entry point, processes arguments, starts game
+├── game/             // Game logic and mechanics
+│   └── game.go       // Core game functionality and feedback generation
+├── io/               // Input/output operations
+│   └── io.go         // File handling for words and statistics
+└── model/            // Data structures
+└── user.go       // User entity and statistics tracking  
+
+
+## Video Example
+
+Video: kood Wordle demo
+
+## Bonus Functionality
+
+If you were inspired by this task, you may implement the following additional features after submitting the initial version:
+
+- **Instant replay**: Allow players to restart the next game without relaunching the app.
+- **Random word selection**: Instead of reading the word number from the command line, randomly choose it each time.
+- **Multi-Length Word Support**: Allow the player to choose the word length at the start of the game (e.g., 5-letter, 6-letter, or 7-letter words).
+
+**NB! Do not submit these functionalities for automated tests.**
 
 ## Useful Links
 
-- [Bufio Package (for buffered I/O)](https://pkg.go.dev/bufio)[cite: 1]
-- [Go Structs, Methods and Receivers](https://dev.to/jpoly1219/structs-methods-and-receivers-in-go-5g4f)[cite: 1]
+- [Command-line arguments in Go](https://gobyexample.com/command-line-arguments)
+- [Reading user input](https://gosamples.dev/read-user-input/)
+- [File operations](https://pkg.go.dev/os)
+- [CSV](https://en.wikipedia.org/wiki/Comma-separated_values)
+- [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+Actually, give it to me as a downloadable markdown file insteadd.
+
+go run . 10
+
+
+After each guess, the game **provides feedback** and shows the **remaining number of attempts** and a **sorted list of remaining letters** (A-Z) that have not been guessed incorrectly, with letters in the feedback **capitalized**. You have to use **ANSI escape codes** in the format of `"\\u001B[32m"` (this example is ANSI green) to color the output.
+
+After each game, the player is presented with an option to **view their stats**.
+
+### Data Management
+
+The word list must be read from a file named `wordle-words.txt` at **project root**. A list with words can be found on the internet, for example [here](https://gist.github.com/dracos/dd0668f281e685bad51479e5acaadb93). **Do not push** the word list file to the repository - it must be included in the `.gitignore` file.
+
+The stats are written to a CSV file named `stats.csv` and include a row of **comma-separated values** for each game in the following order:
+
+- `username`
+- `secret word`
+- `number of attempts`
+- `"win" or "loss"`
+
+The stats file must **persist over games**. **Do not push** the stats file to the repository - it must be included in the `.gitignore` file.
+
+If the word list file is missing, the program should handle it **without crashing**.
+
+### Technical Implementation
+
+`main.go` needs to be located at the **root** of your `koodWordle` repository. This is the entry point of the application, handling command-line arguments and starting the game. Your **Go module name** should match your repository name: `koodWordle`.
+
+You must use `bufio.Scanner` to read from standard input (`stdin`). Handle **EOF** (Ctrl+D) **gracefully** by breaking out of input loops when `scanner.Scan()` returns false.
+
+**NB! All the specific requirements and messages are not provided in the description. You have to discover them from the provided video and automated test feedback.**
+
+### Key Output Formats
+
+Note that the standard output (`stdout`) of your code needs to match the expected `stdout`. To help you out a bit, here is a list with some of the required output formats. You'll need to figure out any missing formats and where to use them by watching the video and reading the test results.
+
+- **Start screen**:
+
+Enter your username:
+
+
+- **After login**:
+
+Welcome to Wordle! Guess the 5-letter word.
+Enter your guess:
+
+
+- **Valid guess screen**:
+
+Feedback: 
+Remaining letters: 
+Attempts remaining:  
+Enter your guess:
+
+
+- **After game**:
+
+Do you want to see your stats? (yes/no):
+
+
+- **After stats question - if `yes` is entered**:
+
+Stats for :
+Games played: 
+Games won: 
+Average attempts per game: 
+Press Enter to exit...
+
+
+### Possible Package structure
+
+An example package structure for the project. This is not compulsory, but it is good to think through and have a clear structure for your projects.
+
+koodWordle
+├── main.go           // Entry point, processes arguments, starts game
+├── game/             // Game logic and mechanics
+│   └── game.go       // Core game functionality and feedback generation
+├── io/               // Input/output operations
+│   └── io.go         // File handling for words and statistics
+└── model/            // Data structures
+└── user.go       // User entity and statistics tracking
+
+
+## Video Example
+
+Video: kood Wordle demo
+
+## Bonus Functionality
+
+If you were inspired by this task, you may implement the following additional features after submitting the initial version:
+
+- **Instant replay**: Allow players to restart the next game without relaunching the app.
+- **Random word selection**: Instead of reading the word number from the command line, randomly choose it each time.
+- **Multi-Length Word Support**: Allow the player to choose the word length at the start of the game (e.g., 5-letter, 6-letter, or 7-letter words).
+
+**NB! Do not submit these functionalities for automated tests.**
+
+## Useful Links
+
+- [Command-line arguments in Go](https://gobyexample.com/command-line-arguments)
+- [Reading user input](https://gosamples.dev/read-user-input/)
+- [File operations](https://pkg.go.dev/os)
+- [CSV](https://en.wikipedia.org/wiki/Comma-separated_values)
+- [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+"""
+
+filename = "kood_wordle_instructions.md"
+with open(filename, "w", encoding="utf-8") as f:
+    f.write(markdown_content)
+
+print(f"File created: {filename}")
+
+Your Markdown file is ready
+
+MD icon
+kood_wordle_instructions
+ MD 
+Open
+
+
+
+Gemini is AI and can make mistakes, including about people. Your privacy and GeminiOpens in a new window
+
+Analysing
+# kood / Wordle
+
+## The Situation
+
+In this project you are tasked with creating a command-line game in Go that mimics the popular [Wordle](https://www.nytimes.com/games/wordle/index.html). The user will guess a hidden word, and your program will provide feedback on their guesses.
+
+## Functional Requirements
+
+### Game Rules
+
+The player has to **guess a 5-letter** word and can make up to **six guesses** to try to identify the secret word. After each guess, the game **provides feedback** indicating which letters are correct:
+
+- **Green** for letters in the correct position.
+- **Yellow** for correct letters in the wrong position.
+- **White** for incorrect letters.
+
+If the player fails to guess the word after **six attempts**, the game should reveal the **secret word**.
+
+### User Interaction
+
+The game must be launched from the command line with a **command-line argument** that signifies the **index** of the word in the provided word list. If the command-line argument is **missing** or **invalid**, the program should handle it **gracefully without crashing**. So the execution command should look like this:
+
+```
+go run . 10
+```
+
+After each guess, the game **provides feedback** and shows the **remaining number of attempts** and a **sorted list of remaining letters** (A-Z) that have not been guessed incorrectly, with letters in the feedback **capitalized**. You have to use **ANSI escape codes** in the format of `"\u001B[32m"` (this example is ANSI green) to color the output.
+
+After each game, the player is presented with an option to **view their stats**.
+
+### Data Management
+
+The word list must be read from a file named `wordle-words.txt` at **project root**. A list with words can be found on the internet, for example [here](https://gist.github.com/dracos/dd0668f281e685bad51479e5acaadb93). **Do not push** the word list file to the repository - it must be included in the `.gitignore` file.
+
+The stats are written to a CSV file named `stats.csv` and include a row of **comma-separated values** for each game in the following order:
+
+- `username`
+- `secret word`
+- `number of attempts`
+- `"win" or "loss"`
+
+The stats file must **persist over games**. **Do not push** the stats file to the repository - it must be included in the `.gitignore` file.
+
+If the word list file is missing, the program should handle it **without crashing**.
+
+### Technical Implementation
+
+`main.go` needs to be located at the **root** of your `koodWordle` repository. This is the entry point of the application, handling command-line arguments and starting the game. Your **Go module name** should match your repository name: `koodWordle`.
+
+You must use `bufio.Scanner` to read from standard input (`stdin`). Handle **EOF** (Ctrl+D) **gracefully** by breaking out of input loops when `scanner.Scan()` returns false.
+
+**NB! All the specific requirements and messages are not provided in the description. You have to discover them from the provided video and automated test feedback.**
+
+### Key Output Formats
+
+Note that the standard output (`stdout`) of your code needs to match the expected `stdout`. To help you out a bit, here is a list with some of the required output formats. You'll need to figure out any missing formats and where to use them by watching the video and reading the test results.
+
+- **Start screen**:
+
+```
+Enter your username:
+```
+
+- **After login**:
+
+```
+Welcome to Wordle! Guess the 5-letter word.
+Enter your guess:
+```
+
+- **Valid guess screen**:
+
+```
+Feedback: <guess word in uppercase>
+Remaining letters: <included and untested uppercase letters separated with whitespace> 
+Attempts remaining:  <number>
+Enter your guess:
+```
+
+- **After game**:
+
+```
+Do you want to see your stats? (yes/no):
+```
+
+- **After stats question - if `yes` is entered**:
+
+```
+Stats for <username>:
+Games played: <number>
+Games won: <number>
+Average attempts per game: <float number>
+Press Enter to exit...
+```
+
+### Possible Package structure
+
+An example package structure for the project. This is not compulsory, but it is good to think through and have a clear structure for your projects.
+
+```
+koodWordle
+├── main.go           // Entry point, processes arguments, starts game
+├── game/             // Game logic and mechanics
+│   └── game.go       // Core game functionality and feedback generation
+├── io/               // Input/output operations
+│   └── io.go         // File handling for words and statistics
+└── model/            // Data structures
+    └── user.go       // User entity and statistics tracking
+```
+
+## Video Example
+
+Video: kood Wordle demo
+
+## Bonus Functionality
+
+If you were inspired by this task, you may implement the following additional features after submitting the initial version:
+
+- **Instant replay**: Allow players to restart the next game without relaunching the app.
+- **Random word selection**: Instead of reading the word number from the command line, randomly choose it each time.
+- **Multi-Length Word Support**: Allow the player to choose the word length at the start of the game (e.g., 5-letter, 6-letter, or 7-letter words).
+
+**NB! Do not submit these functionalities for automated tests.**
+
+## Useful Links
+
+- [Command-line arguments in Go](https://gobyexample.com/command-line-arguments)
+- [Reading user input](https://gosamples.dev/read-user-input/)
+- [File operations](https://pkg.go.dev/os)
+- [CSV](https://en.wikipedia.org/wiki/Comma-separated_values)
+- [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+kood_wordle_instructions.md
+Displaying kood_wordle_instructions.md.
